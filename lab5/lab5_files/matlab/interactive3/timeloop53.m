@@ -74,11 +74,11 @@ function f=timeloop53(tStart,tEnd,dt,yinit,fid)
     else
       dt = dtNew;
     end
-    fprintf('%s','\n----time white black----   ');
+    fprintf('\n%s','----time white black----   ');
     fprintf('%10.4f %10.4f %10.4f',t,y(1),y(2));
-    fprintf('%s','\n ------stepsize, estError ');
+    fprintf('\n%s','------stepsize, estError ');
     fprintf('%10.4f %10.4e %10.4e\n',olddt,yerror(1),yerror(2));
-    fprintf('\n%s\n%f %f %f\n','\nwhite, black temps (K), planet. albedo: ', temp_w,temp_b,albedo_p);
+    fprintf('\n%s\n%f %f %f\n','white, black temps (K), planet. albedo: ', temp_w,temp_b,albedo_p);
     fprintf(fid,'%g;%g;%g\n',t,y(1),y(2));
   end
   fprintf('%d %s\n',goodsteps,' successful steps');
