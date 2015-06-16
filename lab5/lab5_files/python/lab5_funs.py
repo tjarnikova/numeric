@@ -284,7 +284,7 @@ class Integrator(object):
         timeVals=np.array(timeVals).squeeze()
         yVals=np.array(yVals).squeeze()
         errorVals=np.array(errorList).squeeze()
-        return (timeVals,yVals,errorList)
+        return (timeVals,yVals,errorVals)
 
     def timeloop5fixed(self):
         """fixed time step with
