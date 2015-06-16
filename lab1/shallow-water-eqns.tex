@@ -1,0 +1,45 @@
+\begin{example}
+  Many flows in the atmosphere and ocean are governed by the
+  Navier-Stokes equations, which are a complicated, non-linear system
+  of PDE's, relating the evolution of pressure and velocity for a
+  viscous fluid.
+  Let us consider a simplified model of fluid motion, in
+  which the flow is in the $x$-direction only, and pressure effects
+  are ignored.  For this situation, the Navier-Stokes equations reduce
+  to a single, non-linear partial differential equation in the
+  velocity only:
+  \[
+    \underbrace{u_t}_{\mbox{time-dependence}} +
+    \underbrace{uu_x}_{\mbox{advection}} 
+    = \underbrace{\nu u_{xx}}_{\mbox{diffusion}}, 
+  \]
+  where $\nu$ is the {\em kinematic viscosity}.
+  This equation is commonly known as {\em Burger's equation}. 
+
+  \begin{mathnote}
+    \hyperref{Details on the derivation from the Navier-Stokes
+      equations \dots}{See Appendix }{ for an 
+      an overview of the Navier-Stokes equations and the
+      derivation of Burger's equation.}{lab1:ap:burgers} 
+  \end{mathnote}
+
+  In order that the problem have a unique solution, we must also
+  impose the initial values
+  \[
+    u(x,0) = u_0(x).
+  \]
+  If we look for a solution without imposing any boundaries, and take
+  $\nu$ to be constant, then the exact solution can be found as 
+  \[
+    u(x,t) = -2\nu \log \left[ \frac{1}{2 \sqrt{\pi \nu t}}
+      \int_{-\infty}^\infty e^{-u_0(y)/2\nu} e^{-(x-y)^2/4\nu t}dy\right]. 
+  \]
+  If you thought that the solution to the heat equation problem in the
+  previous example was impractical, then this solution is even worse!
+
+  \begin{mathnote}
+    \hyperref{Details of the derivation \dots}{See Appendix }{ for an  
+      a derivation of the solution.}{lab1:ap:burgers-soln} 
+  \end{mathnote}
+\end{example}
+

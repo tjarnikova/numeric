@@ -1,0 +1,59 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% $Id: ap1.tex,v 1.1.1.1 2002/01/02 19:36:28 phil Exp $
+%
+% $Log: ap1.tex,v $
+% Revision 1.1.1.1  2002/01/02 19:36:28  phil
+% initial import into CVS
+%
+% Revision 1.4  1996/08/13 00:56:10  cguo
+% glossary a problem
+%
+% Revision 1.3  1996/08/12 23:25:32  cguo
+% ready for phil
+%
+% Revision 1.2  1995/08/14 22:24:47  stockie
+% - change labels to depend on lab #
+%
+% Revision 1.1  1995/07/18  21:39:32  stockie
+% Initial revision
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Mathematical Notes}
+\label{lab1:ap:mathnote}
+
+\subsection{Solution to the Heat Conduction Equation}
+\label{lab1:ap:conduction}
+
+In Example~\ref{lab1:exm:conduction}, we had the equation
+\[
+  \frac{dT}{dt} = -\lambda (T-T_a),
+\]
+subject to the initial condition $T(0)$.  This equation can be solved
+by \emph{separation of variables}, whereby all expressions involving
+the independent variable $t$ are moved to the right hand side, and all
+those involving the dependent variable $T$ are moved to the left
+\[
+  \frac{dT}{T-T_a} = -\lambda dt.
+\]
+The resulting expression is integrated from time $0$ to $t$
+\[
+  \int_{T(0)}^{T(t)} \frac{dS}{S-T_a} = -\int_0^t\lambda ds,
+\]
+(where $s$ and $S$ are dummy variables of integration), which then
+leads to the relationship
+\[
+  \ln \left( T(t)-T_a)-\ln(T(0)-T_a \right) = -\lambda t,
+\]
+or, after exponentiating both sides and rearranging,
+\[
+  T(t) = T_a + (T(0)-T_a)e^{-\lambda t},
+\]
+which is exactly equation~\eqref{lab1:eq:conduction-soln}.
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "lab1"
+%%% End: 
