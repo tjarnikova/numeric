@@ -6,6 +6,9 @@ import pipes
 
 notebook = re.compile('.*\.ipynb$')
 
+#
+# find all notebooks
+#
 targets = []
 for subdir, dirs, files in scandir.walk('.'):
     for the_file in files:
@@ -16,11 +19,14 @@ for subdir, dirs, files in scandir.walk('.'):
         except FileNotFoundError:
             pass
 
-plotdir = './html_notebooks'
-if not os.path.exists(plotdir):
-    os.makedirs(plotdir)
+#
+# convert to html
+#
+outdir = './html_notebooks'
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
 try:
-    os.chdir(plotdir)
+    os.chdir(outdir)
     for target in targets:
         escaped=pipes.quote(target)
         command='ipython nbconvert --to html {}'.format(escaped)
@@ -30,13 +36,31 @@ except Exception as err:
     print('trouble: {}'.format(err))
 finally:
     os.chdir('..')
-
-
-plotdir = './transfer_notebooks'
-if not os.path.exists(plotdir):
-    os.makedirs(plotdir)
+#
+# convert to latex
+#
+outdir = './pdf_notebooks'
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
 try:
-    os.chdir(plotdir)
+    os.chdir(outdir)
+    for target in targets:
+        escaped=pipes.quote(target)
+        command='ipython nbconvert --to latex {}'.format(escaped)
+        status,output=subprocess.getstatusoutput(command)
+        print(target,status,output)
+except Exception as err:
+    print('trouble: {}'.format(err))
+finally:
+    os.chdir('..')
+#
+# copy to single directory 
+#
+outdir = './transfer_notebooks'
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
+try:
+    os.chdir(outdir)
     for target in targets:
         escaped=pipes.quote(target)
         command='cp -af {} .'.format(escaped)
@@ -47,19 +71,4 @@ except Exception as err:
 finally:
     os.chdir('..')
     
-
-plotdir = './pdf_notebooks'
-if not os.path.exists(plotdir):
-    os.makedirs(plotdir)
-try:
-    os.chdir(plotdir)
-    for target in targets:
-        escaped=pipes.quote(target)
-        command='ipython nbconvert --to latex {}'.format(escaped)
-        status,output=subprocess.getstatusoutput(command)
-        print(target,status,output)
-except Exception as err:
-    print('trouble: {}'.format(err))
-finally:
-    os.chdir('..')
     
