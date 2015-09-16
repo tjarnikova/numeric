@@ -1,3 +1,8 @@
+"""
+ this module uses the algorithms introduced in lab2_functions.py to
+ solve weather ballon problem of Lab 1
+"""
+
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -42,7 +47,7 @@ def leapfrog(the_times,yvec_init):
 
 if __name__=="__main__":
     the_times=np.linspace(0,20.,100)
-    yvec_init=[0,1]
+    yvec_init=[1,0]
     output_euler=euler(the_times,yvec_init)
     output_mid=midpoint(the_times,yvec_init)
     output_leap=leapfrog(the_times,yvec_init)
