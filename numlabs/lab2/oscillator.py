@@ -1,10 +1,10 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-def yprime(the_time,yvec):
+def yprime(the_time,yvec,gamma=1,m=1):
     yprime=np.empty_like(yvec)
     yprime[0]=yvec[1]
-    yprime[1]= -yvec[0]
+    yprime[1]= -gamma/m*yvec[0]
     return yprime
 
 def euler(the_times,yvec_init):
@@ -41,7 +41,7 @@ def leapfrog(the_times,yvec_init):
 
 
 if __name__=="__main__":
-    the_times=np.linspace(0,20.,30)
+    the_times=np.linspace(0,20.,100)
     yvec_init=[0,1]
     output_euler=euler(the_times,yvec_init)
     output_mid=midpoint(the_times,yvec_init)
@@ -53,8 +53,7 @@ if __name__=="__main__":
     ax.plot(the_times,(output_euler[0,:]-answer),label='euler')
     ax.plot(the_times,(output_mid[0,:]-answer),label='midpoint')
     ax.plot(the_times,(output_leap[0,:]-answer),label='leapfrog')
-    #ax.plot(the_times,answer,label='exact')
-    #ax.set(ylim=[-0.01,0.01],xlim=[0,20])
+    ax.set(ylim=[-2,2],xlim=[0,20])
     ax.legend(loc='best')
     plt.show()
         
