@@ -1,6 +1,8 @@
 """
  this module uses the algorithms introduced in lab2_functions.py to
- solve weather ballon problem of Lab 1
+ solve weather ballon problem of Lab 1.  We need to integrate two
+ variables (height y and velocity u) which are kept in the
+ vector 
 """
 
 import numpy as np

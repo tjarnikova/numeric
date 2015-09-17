@@ -15,13 +15,14 @@ if __name__=="__main__":
     To=30.
     theLambda=-8.
     funChoice='euler'
-    npts=1000.
+    npts=40.
     approxTime,approxTemp=theFuncs[funChoice](npts,tend,To,Ta,theLambda)
     exactTime=np.empty([npts,],float)
     exactTemp=np.empty_like(exactTime)
     for i in np.arange(0,npts):
        exactTime[i] = tend*i/npts
        exactTemp[i] = Ta + (To-Ta)*np.exp(theLambda*exactTime[i])
+    plt.close('all')
     plt.figure(1)
     plt.clf()
     plt.plot(exactTime,exactTemp,'r+')
