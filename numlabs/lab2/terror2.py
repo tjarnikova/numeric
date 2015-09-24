@@ -15,7 +15,7 @@ if __name__=="__main__":
     print(points)
     funChoice='runge'
 
-    plt.close('all')
+    # plt.close('all')
     #
     #find the method in the theFuncs dictionary and call it
     #
