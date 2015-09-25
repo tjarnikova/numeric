@@ -59,13 +59,14 @@ if __name__=="__main__":
     fig2=plt.figure(2)
     fig2.clf()
     difference_runge = approxTemp_runge-exactTemp;
-    difference_euler = approxTemp_euler-exactTemp;
+    
     difference_leapfrog = approxTemp_leapfrog - exactTemp;
+    difference_euler = approxTemp_euler - exactTemp;
     plt.xlim(0,30)
     plt.ylim(-50,50)
-    plt.plot(exactTime,difference_runge, 'b', label= "difference - runge")
+    #plt.plot(exactTime,difference_runge, 'b', label= "difference - runge")
     plt.plot(exactTime,difference_euler, 'g', label= "difference - euler")
-    plt.plot(exactTime,difference_leapfrog, 'r', label= "difference - leapfrog")
+    #plt.plot(exactTime,difference_leapfrog, 'r', label= "difference - leapfrog")
     titl = "Difference between approximations and exact solution. Steps: " + points
     plt.title(titl)
     plt.legend( loc='upper left' )
