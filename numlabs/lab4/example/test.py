@@ -44,7 +44,7 @@ if __name__ == "__main__":
   nsteps=len(time) 
   savedata=np.empty([nsteps],'float')
   for i in range(nsteps):
-    y=midpoint4(coeff,y,derivs4)
+    y=euler4(coeff,y,derivs4)
     savedata[i]=y[0]
 
   plt.close('all')
