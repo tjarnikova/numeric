@@ -1,0 +1,13 @@
+{
+    "comment": "written Oct. 6, 2015",
+    "c2": 1.0,
+    "plot_title": "simple damped oscillator run 1 - Heun Method",
+    "yinitial": [
+        0.0,
+        1.0
+    ],
+    "dt": 0.1,
+    "t_beg": 0.0,
+    "c1": 0.0,
+    "t_end": 40.0
+}
