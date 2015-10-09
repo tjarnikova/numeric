@@ -9,10 +9,16 @@ def derivs4(coeff, y):
   f[1]= -1.*coeff.c1*y[1] - coeff.c2*y[0]
   return f
 
-def derivsB(coeff,y):
-    f = np.empty_like(y) #2 element vector for derivative
-    f[0]=y[1]
-    f[1]=coeff.c1*y[1] - coeff.c2*y[0]
+def derivsB(coeff,y,t):
+#    f = np.empty_like(y) #2 element vector for derivative
+
+    f= - coeff.c1*y + coeff.c2*t + 1
+    return f
+
+
+def derivsC(coeff,y):
+    f = -(coeff.c1)*(y-coeff.c2)
+    return f
 
 
 def euler4(coeff,y,derivs):
@@ -46,6 +52,12 @@ def heun(coeff, y, derivs):
   k2 = coeff.dt * derivs(coeff,y + ((2.0/3.0) * k1))
   ynew = y + (1.0/4.0) * (k1) + (3.0/4.0) * (k2)
   return ynew
+
+def heun2(coeff, y, derivs,t):
+    k1 = coeff.dt * derivsB(coeff,y,t)
+    k2 = coeff.dt * derivsB(coeff,y + ((2.0/3.0) * k1),t)
+    ynew = y + (1.0/4.0) * (k1) + (3.0/4.0) * (k2)
+    return ynew
 
 
 if __name__ == "__main__":
