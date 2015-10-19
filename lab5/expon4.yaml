@@ -1,7 +1,7 @@
 timevars:
-  dt: 1
+  dt: .05
   tstart: 0.0
-  tend: 100.0
+  tend: 500.0
 uservars:
   c1: -1.0
   c2: 1.0
