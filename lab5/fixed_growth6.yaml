@@ -1,7 +1,7 @@
 timevars:
   dt: 0.1
   tstart: 0.0
-  tend: 50.0
+  tend: 200.0
 uservars:
   albedo_white: 0.75
   albedo_black: 0.25

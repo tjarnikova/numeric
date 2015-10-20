@@ -3,7 +3,7 @@ timevars:
   tstart: 0.0
   tend: 50.0
 uservars:
-  albedo_grey: 0.6
+  albedo_grey: 0.3
   chi: 0.3
   S0: 3668.0
   L: .3
