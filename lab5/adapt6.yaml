@@ -15,7 +15,7 @@ uservars:
 initvars:
   whiteconc: 0.5
   blackconc: 0.2
-  rabbits: 0.2
+  rabbits: 0.01
 adaptvars:
   dtpassmin: 0.1
   dtfailmax: 0.5

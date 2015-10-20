@@ -5,7 +5,7 @@ timevars:
 uservars:
   albedo_white: 0.75
   chi: 0.3
-  rabbit_chi: 0.3
+  rabbit_chi: 0.4
   S0: 3668.0
   L: 1.1
   albedo_black: 0.25
