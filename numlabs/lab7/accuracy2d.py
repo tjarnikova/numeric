@@ -56,5 +56,5 @@ if __name__ == '__main__':
         # Run with the value of doR the user gave
         main(sys.argv[1])
     else:
-        print 'Usage: accuracy2d doR'
-        print 'where doR is the ratio of grid size, d, to Rossby radius, R'
+        print ('Usage: accuracy2d doR')
+        print ('where doR is the ratio of grid size, d, to Rossby radius, R')

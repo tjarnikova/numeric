@@ -5,6 +5,12 @@ Use the simplified shallow water equations on a non-staggered grid.
 
 This is an implementation of lab7 section 4.3.
 
+Example usage from the notebook::
+
+from numlabs.lab7 import rain
+# Run 5 time steps on a 9 point grid
+rain.rain(5,9)
+
 Example usage from the shell::
 
   # Run 5 time steps on a 9 point grid
@@ -14,28 +20,22 @@ The graph window will close as soon as the animation finishes.  And
 the default run for 5 time steps doesn't produce much of interest; try
 at least 100 steps.
 
-To have the graph window persist after the script ends run it from
-within the ipython shell, or the Python interpreter.
-
-Example usage from ipython::
-
-  $ ipython -pylab
-  ...
-  In [1]: run rain 200 9
-
 Example usage from the Python interpreter::
 
   $ python
   ...
   >>> import rain
   >>> # Run 200 time steps on a 9 point grid
-  >>> rain.main((200, 9))
+  >>> rain.rain((200, 9))
 """
 from __future__ import division
 import copy
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
+import matplotlib.colorbar as colorbar
 import os,glob
 
 class Quantity(object):
@@ -127,7 +127,7 @@ def leap_frog(u, h, gu, gh, n_grid):
     """Calculate the next time step values using the leap-frog scheme
     derived from equations 4.16 and 4.17.
     """
-    for pt in xrange(1, n_grid - 1):
+    for pt in np.arange(1, n_grid - 1):
         u.next[pt] = u.prev[pt] - gu * (h.now[pt + 1] - h.now[pt - 1])
         h.next[pt] = h.prev[pt] - gh * (u.now[pt + 1] - u.now[pt - 1])
 #     Alternate vectorized implementation:
@@ -137,66 +137,47 @@ def leap_frog(u, h, gu, gh, n_grid):
 #                             - gh * (u.now[2:n_grid] - u.now[:n_grid - 2]))
 
 
-def animate(u, h, ho, dt, n_time):
-    """Create animated graphs of the model results using matplotlib.
+def make_graph(u, h, dt, n_time):
+    """Create graphs of the model results using matplotlib.
 
     You probably need to run the rain script from within ipython,
-    launched with `ipython -pylab` in order to see the graphs.  And
+    in order to see the graphs.  And
     the default run for 5 time steps doesn't produce much of interest;
     try at least 100 steps.
     """
-    # Turn interactive mode on so that the graph displays can be
-    # update at each time step
-    #plt.ion()
+
     # Create a figure with 2 sub-plots
-    fignum=1
-    fig = plt.figure(fignum)
-    fig.clf()
-    fig.subplots_adjust(left=0.17)
-    ax_u = plt.subplot(211)
-    ax_h = plt.subplot(212)
-    # Set the figure title, and the axes labels.  Capture the
-    # generated title text object so that we can update it in the time
-    # step loop.
-    the_title = fig.text(0.45, 0.95, 'Results at t = %.3fs' % 0)
+    fig, (ax_u, ax_h) = plt.subplots(2,1, figsize=(10,10))
+    
+    # Set the figure title, and the axes labels.
+    the_title = fig.text(0.25, 0.95, 'Results from t = %.3fs to %.3fs' % (0, dt*n_time))
     ax_u.set_ylabel('u [cm/s]')
     ax_h.set_ylabel('h [cm]')
     ax_h.set_xlabel('Grid Point')
-    # Graph the initial conditions, and set the y-axis limits for the
-    # plots.  Capture the generated line objects so that we can update
-    # them in the time step loop.
-    u_line, = ax_u.plot(u.store[:, 0])
-    u_limit = round(np.amax(u.store) + 0.05, 1)
-    ax_u.set_ylim((-u_limit, u_limit))
-    h_line, = ax_h.plot(h.store[:, 0])
-    ax_h.set_ylim((-ho, ho))
-    # Display the initial conditions
-    the_time=0
-    plotdir='plotfiles'
-    if not os.path.exists(plotdir):
-        os.mkdir(plotdir)
-    else:
-        #if directory exists, clear the pngfiles
-        filenames="%s%s*.png" % (plotdir,os.sep)
-        plotfiles=glob.glob(filenames)
-        for the_file in plotfiles:
-            os.remove(the_file)
-    plotname="%s%splot_%04d.png" % (plotdir,os.sep,the_time)
-    plt.draw()
-    plt.savefig(plotname,dpi=150)
-    for the_time in xrange(1, n_time):
-        # Update the figure title, and lines data at each time step,
-        # and re-draw them
-        the_title.set_text('Results at t = %.3fs' % (dt * the_time))
-        plotname="%s%splot_%04d.png" % (plotdir,os.sep,the_time)
-        u_line.set_ydata(u.store[:, the_time])
-        h_line.set_ydata(h.store[:, the_time])
-        print "plot: ",plotname
-        plt.draw()
-        plt.savefig(plotname,dpi=150)
 
+    # We use color to differentiate lines at different times.  Set up the color map
+    cmap = plt.get_cmap('spectral')
+    cNorm  = colors.Normalize(vmin=0, vmax=1.*n_time)
+    cNorm_inseconds = colors.Normalize(vmin=0, vmax=1.*n_time*dt)
+    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
 
-def main(args):
+    # Only try to plot 20 lines, so choose an interval if more than that (i.e. plot
+    # every interval lines
+    interval = np.int(np.ceil(n_time/20))
+
+    # Do the main plot
+    for time in range(0, n_time, interval):
+        colorVal = scalarMap.to_rgba(time)
+        ax_u.plot(u.store[:, time], color=colorVal)
+        ax_h.plot(h.store[:, time], color=colorVal)
+
+    # Add the custom colorbar
+    ax2 = fig.add_axes([0.95, 0.05, 0.05, 0.9])
+    cb1 = colorbar.ColorbarBase(ax2, cmap=cmap, norm=cNorm_inseconds)
+    cb1.set_label('Time (s)')
+    return
+
+def rain(args):
     """Run the model.
 
     args is a 2-tuple; (number-of-time-steps, number-of-grid-points)
@@ -230,7 +211,7 @@ def main(args):
     u.store_timestep(1, 'now')
     h.store_timestep(1, 'now')
     # Time step loop using leap-frog scheme
-    for t in xrange(2, n_time):
+    for t in np.arange(2, n_time):
         # Advance the solution and apply the boundary conditions
         leap_frog(u, h, gu, gh, n_grid)
         boundary_conditions(u.next, h.next, n_grid)
@@ -241,19 +222,16 @@ def main(args):
         h.store_timestep(t)
         u.shift()
         h.shift()
-        print "time step: ",t
-    # Print the results
-    np.set_printoptions(suppress=True)
-    print 'u:\n', u.store
-    print 'h:\n', h.store
-    # Plot the results as animated graphs
-    animate(u, h, ho, dt, n_time)
+
+    # Plot the results as colored graphs
+    make_graph(u, h, dt, n_time)
+    return
 
 
 if __name__ == '__main__':
     # sys.argv is the command-line arguments as a list. It includes
     # the script name as its 0th element. Check for the degenerate
-    # cases of no aditional arguments, or the 0th element containing
+    # cases of no additional arguments, or the 0th element containing
     # `sphinx-build`. The latter is a necessary hack to accommodate
     # the sphinx plot_directive extension that allows this module to
     # be run to include its graph in sphinx-generated docs.
@@ -267,11 +245,11 @@ if __name__ == '__main__':
     #
     if len(sys.argv) == 1 or 'sphinx-build' in sys.argv[0]:
         # Default to 50 time steps, and 9 grid points
-        main((50, 9))
+        rain((50, 9))
     elif len(sys.argv) == 3:
         # Run with the number of time steps and grid point the user gave
-        main(sys.argv[1:])
+        rain(sys.argv[1:])
     else:
-        print 'Usage: rain n_time n_grid'
-        print 'n_time = number of time steps; default = 5'
-        print 'n_grid = number of grid points; default = 9'
+        print ('Usage: rain n_time n_grid')
+        print ('n_time = number of time steps; default = 5')
+        print ('n_grid = number of grid points; default = 9')

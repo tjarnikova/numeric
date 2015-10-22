@@ -9,18 +9,6 @@ def derivs4(coeff, y):
   f[1]= -1.*coeff.c1*y[1] - coeff.c2*y[0]
   return f
 
-def derivsB(coeff,y,t):
-#    f = np.empty_like(y) #2 element vector for derivative
-
-    f= - coeff.c1*y + coeff.c2*t + 1
-    return f
-
-
-def derivsC(coeff,y):
-    f = -(coeff.c1)*(y-coeff.c2)
-    return f
-
-
 def euler4(coeff,y,derivs):
   ynew=y + coeff.dt*derivs(coeff,y)
   return ynew
@@ -47,19 +35,6 @@ def rk4ODE(coeff, y, derivs):
   ynew = y + (1.0/6.0) * (k1 + (2.0 * k2) + (2.0 * k3) + k4)
   return ynew
 
-def heun(coeff, y, derivs):
-  k1 = coeff.dt * derivs(coeff,y)
-  k2 = coeff.dt * derivs(coeff,y + ((2.0/3.0) * k1))
-  ynew = y + (1.0/4.0) * (k1) + (3.0/4.0) * (k2)
-  return ynew
-
-def heun2(coeff, y, derivs,t):
-    k1 = coeff.dt * derivsB(coeff,y,t)
-    k2 = coeff.dt * derivsB(coeff,y + ((2.0/3.0) * k1),t)
-    ynew = y + (1.0/4.0) * (k1) + (3.0/4.0) * (k2)
-    return ynew
-
-
 if __name__ == "__main__":
 
   infile='run_1.json'
@@ -69,6 +44,7 @@ if __name__ == "__main__":
   nsteps=len(time) 
   savedata=np.empty([nsteps],'float')
   for i in range(nsteps):
+    print(type(y))
     y=euler4(coeff,y,derivs4)
     savedata[i]=y[0]
 
