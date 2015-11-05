@@ -5,11 +5,11 @@ timevars:
 uservars:
   sigma: 10
   beta: 2.666666
-  rho: 28.
+  rho: .1
 initvars:
-  x: -20.1
-  y: -10.1
-  z: 10.1
+  x: 5
+  y: 5
+  z: 5
 adaptvars:
   dtpassmin: 0.1
   dtfailmax: 0.5

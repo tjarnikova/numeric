@@ -7,9 +7,9 @@ uservars:
   beta: 2.666666
   rho: 28.
 initvars:
-  x: -20.1
-  y: -10.1
-  z: 10.1
+  x: 8.5
+  y: 8.5
+  z: 27
 adaptvars:
   dtpassmin: 0.1
   dtfailmax: 0.5

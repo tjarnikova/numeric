@@ -1,15 +1,15 @@
 timevars:
-  dt: 0.02
+  dt: 0.01042961373
   tstart: 0.0
   tend: 50.0
 uservars:
   sigma: 10
   beta: 2.666666
-  rho: 38.
+  rho: 28.
 initvars:
-  x: 5
-  y: 5
-  z: 5
+  x: -20.1
+  y: -10.1
+  z: 10.1
 adaptvars:
   dtpassmin: 0.1
   dtfailmax: 0.5
