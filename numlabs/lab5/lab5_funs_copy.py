@@ -265,6 +265,33 @@ class Integrator:
         errorVals = np.array(errorList).squeeze()
         return (timeSteps, yvals, errorVals)
 
+    def timeloop5fixed_for2(self):
+        """fixed time step with
+            estimated errors
+            """
+        t = self.timevars
+        yold = self.yinit
+        yold2 = self.yinit2
+        yError = np.zeros_like(yold)
+        yvals = [yold]
+        errorList = [yError]
+        yError2 = np.zeros_like(yold2)
+        yvals2 = [yold2]
+        errorList2 = [yError2]
+        timeSteps = np.arange(t.tstart, t.tend, t.dt)
+        for theTime in timeSteps[:-1]:
+            yold, yError, newTime = self.rkckODE5(yold, theTime, t.dt)
+            yvals.append(yold)
+            errorList.append(yError)
+            yold2, yError2, newTime = self.rkckODE5(yold2, theTime, t.dt)
+            yvals2.append(yold2)
+            errorList2.append(yError2)
+        yvals = np.array(yvals).squeeze()
+        yvals2 = np.array(yvals2).squeeze()
+        errorVals = np.array(errorList).squeeze()
+        errorVals2 = np.array(errorList2).squeeze()
+        return (timeSteps, yvals, errorVals, yvals2, errorVals2)
+
 
 if __name__ == "__main__":
     import numpy as np
