@@ -5,9 +5,9 @@ from numpy import fft
 from matplotlib import pyplot as plt
 
 
-class ubc_fft:
+class ubc_fft_dat:
 
-    def __init__(self, filename, var, scale):
+    def __init__(self, data, scale):
         """
            Input filename, var=variable name, 
            scale= the size of the pixel in km
@@ -15,16 +15,15 @@ class ubc_fft:
            Constructer opens the netcdf file, reads the data and
            saves the twodimensional fft
         """
-        with Dataset(filename,'r') as fin:
-            data = fin.variables[var][...]
+
         data = data - data.mean()
         if data.shape[0] != data.shape[1]:
             raise ValueError('expecting square matrix')
         self.xdim = data.shape[0]     # size of each row of the array
         self.midpoint = int(math.floor(self.xdim/2))
-        root,suffix = filename.split('.')
-        self.filename = root
-        self.var = var
+        #root,suffix = filename.split('.')
+        #self.filename = root
+        #self.var = var
         self.scale = float(scale)
         self.data = data
         self.fft_data = fft.fft2(self.data)
@@ -105,6 +104,3 @@ class ubc_fft:
         ax.set(title=title,xlabel='k (1/km)',ylabel='$E_k$')
         ax.legend()
         self.plotax=ax
-
-        
-        
