@@ -47,7 +47,7 @@ class Integrator:
         raise ValueError(
             'set_init needs to be overridden in the derived class')
 
-    def __init__(self, coeffFileName):
+    def __init__(self, coeffFileName,met):
         with open(coeffFileName, 'rb') as f:
             config = yaml.load(f)
         self.config = config
@@ -58,14 +58,6 @@ class Integrator:
         adaptvars = namedtuple('adaptvars', config['adaptvars'].keys())
         self.adaptvars = adaptvars(**config['adaptvars'])
         self.rkckConsts = rkck_init()
-        icevars = namedtuple('icevars',config['icevars'].keys())
-        self.icevars = icevars(**config['icevars'])
-        windvars = namedtuple('windvars',config['windvars'].keys())
-        self.windvars = windvars(**config['windvars'])
-        sstvars = namedtuple('sstvars',config['sstvars'].keys())
-        self.sstvars = sstvars(**config['sstvars'])
-        parvars = namedtuple('parvars',config['parvars'].keys())
-        self.parvars = parvars(**config['parvars'])
 
     def __str__(self):
         out = 'integrator instance with attributes initvars, timevars,uservars, ' + \
@@ -76,81 +68,31 @@ class Integrator:
         raise ValueError('derivs5 needs to be overrideen in the derived class')
         return None
     
-    def met_forcing(self, timeStep):
-        type(timeStep)
-        ice = 7
-        if (timeStep < 32.0):
-            ice = self.icevars.Jan
-            wind = self.windvars.Jan
-            sst = self.sstvars.Jan
-            par = self.parvars.Jan
-        elif (timeStep < 60.0 ):
-             ice = self.icevars.Feb
-             wind = self.windvars.Feb
-             sst = self.sstvars.Feb
-             par = self.parvars.Feb
-        elif (timeStep < 91.0 ):
-            ice = self.icevars.March 
-            wind = self.windvars.March
-            sst = self.sstvars.March
-            par = self.parvars.March     
-        elif (timeStep < 121.0 ):
-            ice = self.icevars.April 
-            wind = self.windvars.April
-            sst = self.sstvars.April
-            par = self.parvars.April
-        elif (timeStep < 152.0 ):
-            ice = self.icevars.May
-            wind = self.windvars.May
-            sst = self.sstvars.May
-            par = self.parvars.May
-        elif (timeStep < 182.0 ):
-            ice = self.icevars.June
-            wind = self.windvars.June
-            sst = self.sstvars.June
-            par = self.parvars.June
-        elif (timeStep < 213.0 ):
-            ice = self.icevars.July
-            wind = self.windvars.July
-            sst = self.sstvars.July
-            par = self.parvars.July
-        elif (timeStep < 244.0 ):
-            ice = self.icevars.Aug
-            wind = self.windvars.Aug
-            sst = self.sstvars.Aug
-            par = self.parvars.Aug
-        elif (timeStep < 274.0 ):
-            ice = self.icevars.Sept
-            wind = self.windvars.Sept
-            sst = self.sstvars.Sept
-            par = self.parvars.Sept
-        elif (timeStep < 305.0 ):
-            ice = self.icevars.Oct
-            sst = self.sstvars.Oct
-            wind = self.windvars.Oct
-            par = self.parvars.Oct
-        elif (timeStep < 335.0 ):
-            ice = self.icevars.Nov
-            wind = self.windvars.Nov
-            sst = self.sstvars.Nov
-            par = self.parvars.Nov
-        elif (timeStep >= 335.0):
-            ice = self.icevars.Dec
-            wind = self.windvars.Dec
-            sst = self.sstvars.Dec
-            par = self.parvars.Dec
+    def met_forcing(self, timeStep, met):
 
-        met_force = {'ice': ice, 'wind': wind, 'sst': sst, 'par': par}
+        ice = (met.get('ice'))
+        ice = ice[int(timeStep)]
+        wind = (met.get('wind'))
+        wind = wind[int(timeStep)]
+        sst = (met.get('temp'))
+        sst = sst[int(timeStep)]
+        par =(met.get('par'))
+        par = par[int(timeStep)]
+        icemelt = (met.get('icemelt'))
+        icemelt = icemelt[int(timeStep)]
+        ccsen = (met.get('ccsen'))
+        ccsen = ccsen[int(timeStep)]
+        met_force = {'ice': ice, 'wind': wind, 'sst': sst, 'par': par, 'icemelt': icemelt, 'ccsen': ccsen}# 'par': par}
     
         return(met_force)
 
-    def rkckODE5(self, yold, timeStep, deltaT):
+    def rkckODE5(self, yold, timeStep, deltaT, met):
 
         # initialize the Cash-Karp coefficients
         # defined in the tableau in lab 4,
         
         
-        met_force = self.met_forcing(timeStep)
+        met_force = self.met_forcing(timeStep, met)
         a, c1, c2, b = self.rkckConsts
         i = self.initvars
         # set up array to hold k values in lab4 
@@ -320,7 +262,7 @@ class Integrator:
         self.errorVals = errorVals
         return (timeVals, yvals, errorVals)
 
-    def timeloop5fixed(self):
+    def timeloop5fixed(self, met):
         """fixed time step with
            estimated errors
         """
@@ -329,53 +271,42 @@ class Integrator:
         yold = self.yinit
         yError = np.zeros_like(yold)
         yvals = [yold]
-        icevals=[self.icevars.Jan]
-        windvals=[self.windvars.Jan]
-        sstvals = [self.sstvars.Jan] 
-        parvals = [self.parvars.Jan] 
+        sst = (met.get('temp'))
+        par = (met.get('par'))
+        wind = (met.get('wind'))
+        ice = (met.get('ice'))
+        icemelt = (met.get('icemelt'))
+        ccsen = (met.get('ccsen'))
+        icevals=[ice[0]]
+        icemeltvals = [icemelt[0]]
+        windvals = [wind[0]]
+        sstvals = [sst[0]]
+        parvals = [par[0]]
+        ccsenvals = [ccsen[0]]
         errorList = [yError]
         timeSteps = np.arange(t.tstart, t.tend, t.dt)
         
         for theTime in timeSteps[:-1]:
-            yold, yError, newTime, met_force = self.rkckODE5(yold, theTime, t.dt)
+            yold, yError, newTime, met_force = self.rkckODE5(yold, theTime, t.dt, met)
             ice = met_force.get('ice')
             wind = met_force.get('wind')
             sst = met_force.get('sst')
             par = met_force.get('par')
+            icemelt = met_force.get('icemelt')
+            ccsen = met_force.get('ccsen')
             yvals.append(yold)
             errorList.append(yError)
             icevals.append(ice)
+            icemeltvals.append(icemelt)
             windvals.append(wind)
             sstvals.append(sst)
             parvals.append(par)
+            ccsenvals.append(ccsen)
 
         yvals = np.array(yvals).squeeze()
         errorVals = np.array(errorList).squeeze()
-        met_dict = {'ice': icevals, 'wind': windvals, 'sst': sstvals, 'par': parvals}
+        met_dict = {'ice': icevals, 'wind': windvals, 'sst': sstvals, 'par': parvals, 'icemelt' : icemeltvals, 'ccsen' : ccsenvals}
         #metvals 
 
         return (timeSteps, yvals, errorVals, met_dict)
 
-
-if __name__ == "__main__":
-    import numpy as np
-    import scipy as sp
-    import matplotlib.pyplot as plt
-
-    theSolver = Integrator('example1/daisy.ini')
-
-    timeVals, yvals, errList = theSolver.timeloop5Err()
-    whiteDaisies = [frac[0] for frac in yvals]
-
-    thefig = plt.figure(1)
-    thefig.clf()
-    theAx = thefig.add_subplot(111)
-    points = theAx.plot(timeVals, whiteDaisies, 'b+')
-    theLines = theAx.plot(timeVals, yvals)
-    theLines[1].set_linestyle('--')
-    theLines[1].set_color('k')
-    theAx.set_title('lab 5 example 1')
-    theAx.set_xlabel('time')
-    theAx.set_ylabel('fractional coverage')
-    theAx.legend(theLines, ('white daisies', 'black daisies'), loc='best')
-    plt.show()

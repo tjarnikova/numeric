@@ -3,18 +3,19 @@ from importlib import reload
 from INTFUN import Integrator
 reload(INTFUN)
 from collections import namedtuple
+from interp_met import met_get, temp_load, ice_load, wind_load
 import numpy as np
 #%matplotlib inline
 import matplotlib.pyplot as plt
 import pandas as pd
-
-
-from importlib import reload
-reload(INTFUN)
-from collections import namedtuple
-import numpy as np
-#matplotlib inline
-import matplotlib.pyplot as plt
+import glob, os
+# import math
+# from importlib import reload
+# reload(INTFUN)
+# from collections import namedtuple
+# import numpy as np
+# #matplotlib inline
+# import matplotlib.pyplot as plt
 import pandas as pd
 
 
@@ -22,48 +23,51 @@ import pandas as pd
 class Integ59(Integrator):
 
     def set_yinit(self):
-        #
-        # read in 'albedo_white chi S0 L albedo_black R albedo_ground'
-        #
-        uservars = namedtuple('uservars', self.config['uservars'].keys())
-        self.uservars = uservars(**self.config['uservars'])
-        #
-        # read in 'whiteconc blackconc'
-        #
+
         initvars = namedtuple('initvars', self.config['initvars'].keys())
         self.initvars = initvars(**self.config['initvars'])
         self.yinit = np.array(
-            [self.initvars.seaDMS,
+            [self.initvars.primprod,
+             self.initvars.seaDMS,
+             self.initvars.iceDMS,
              self.initvars.airDMS,
+             self.initvars.airDMS_icecont,
              self.initvars.CCN,
-             self.initvars.COD,
-             self.initvars.albedo,
-             # self.initvars.PAR,
-             self.initvars.primprod])       
+             self.initvars.CCN_icecont,
+             self.initvars.forcing,
+             self.initvars.forcing_icecont])
+      
         self.nvars = len(self.yinit)
         return None
 
-    def __init__(self, coeff_file_name):
-        super().__init__(coeff_file_name)
+    def __init__(self, coeff_file_name,met):
+        super().__init__(coeff_file_name,met)
         self.set_yinit()
 
 
     def derivs5(self, y, t,met):
 
-        user = self.uservars
+        # user = self.uservars
         ice = met.get('ice')
         wind = met.get('wind')
         sst = met.get('sst')
         par = met.get('par')
+        icemelt = met.get('icemelt')
+        ccsen = met.get('ccsen')
+        # print('icemelt')
+        # print(icemelt)
+        parmax = 36.954097122
         f = np.empty_like(y)
 
         #equations for primary prod    
-        Tmax = 3.7
-        I_k = 112
+        Tmax = 0.201127738931
+        sst = sst 
         mu_0 = .79
-        chi = 0.525
+        chi = .4
+        albedo = .5
+        cc = .5
 
-        R_L = (par/I_k)*(np.sqrt(1+((par*(1-y[4])/I_k)**2)))
+        R_L = ((par)/parmax)*(np.sqrt(1+((par*(1)/parmax)**2)))
         R_T = np.exp(0.063*(sst-Tmax))
         mu = mu_0*R_L*R_T 
 
@@ -81,39 +85,54 @@ class Integ59(Integrator):
         elif (wind > 13):
             k_w = beta * (5.9*wind - 49.9) + 0.61 * alpha
 
-        print('kw')
-        print(k_w)    
-        #sea DMS
-        f[0] = (y[0]*(mu-chi)*.4)*(1-ice)
-        print(y[0])
-        DMS = y[0]+f[0]
-        DMSFLUX = k_w*DMS*(1-ice)
-        f[1] = DMSFLUX-y[1]
-        print(DMSFLUX)
-        print(f[1])
+        #primprod    
+        f[0] = (y[0]*(mu-chi))*(1-ice)
+        #seaDMS
+        f[1] = (y[1]*(mu-chi))*(1-ice)
+        DMS = y[1]+f[1]
+        # print('DMS')
+        # print(DMS)
+        #iceDMS
+        iceDMS = icemelt * 100
+        # print('iceDMS')
+        print(iceDMS)
+        f[2] = iceDMS - y[2]
+        #airDMS
+
+        #DMS_copy = DMS
+        DMSFLUX = k_w*DMS
+        f[3] = DMSFLUX-y[3]
+        totDMS = DMS+iceDMS
+        #print(totDMS)
+        #airDMS_icecont
+        DMSFLUX_icecont = k_w*(totDMS)
+        f[4] =  DMSFLUX_icecont - y[4]
         #CCN
-        f[2] = 0
-        #COD
-        f[3] = 0 
-        #albedo
-        f[4] = 0
-        # #PAR
-        # f[5] = y[5] 
-        #primprod
-        # if (t< 60):
-        #     f[6] = 0
-        # if (t>= 60):
-        f[5] = (y[5]*(mu-chi)*.7)*(1-ice)
+        perc_change = 0.02*((DMSFLUX-y[3])/y[3])
+        CCN = (1+perc_change)*y[5]
 
-        #f[6] = y[6]
-
+        f[5] = CCN - y[5]
+        delt_N = f[5]/CCN
+        #CCN icecont
+        perc_change = 0.02*((DMSFLUX_icecont-y[4])/y[4])
+        CCN_icecont = (1+perc_change)*y[6]
+        f[6] = CCN_icecont - y[6]
+        delt_N_ice = f[6]/CCN_icecont
+        #forcing
+        f[7] = (-1/3)*par*cc*albedo*(1-albedo)*delt_N
+        #forcing_icecont
+        f[8] = (-1/3)*par*cc*albedo*(1-albedo)*delt_N_ice
         
-        return f
+        return f  
     
+temp_file = 'met_var/air.mon.ltm.nc'
+wind_file = 'met_var/wspd.sig995.mon.ltm.nc'
+ice_file = 'ice/icec.day.mean.2014.v2.nc'
 
-theSolver = Integ59('test.yaml')
-timeVals,yVals,errorList,metList=theSolver.timeloop5fixed()
-yvals=pd.DataFrame.from_records(yVals,columns=['DMS','DMS flux','CCN','COD','albedo','primary productivity'])
+met = met_get(temp_file,ice_file,wind_file)
+theSolver = Integ59('test.yaml',met)
+timeVals,yVals,errorList,metList=theSolver.timeloop5fixed(met)
+yvals=pd.DataFrame.from_records(yVals,columns=['primprod','sea DMS','ice DMS','air DMS','air_dms_icecont','CCN', 'CCN_icecont', 'forcing', 'forcing_icecont'])
 
 plt.close("all")
 
@@ -123,56 +142,42 @@ for row, big_ax in enumerate(big_axes, start=1):
     # removes the white frame
     big_ax._frameon = False
 
-yvals=pd.DataFrame.from_records(yVals,columns=['DMS','DMS flux','CCN','COD','albedo','primary productivity'])
-str_list = str_list  = ['Fig 1: Sea DMS ','Fig 2: DMS flux','Fig 3: CCN','Fig 4: COD','Fig 5: Albedo','Fig 6: Primary Productivity',]
-var_list = ['DMS','DMS flux','CCN','COD','albedo','primary productivity']
-key_list = ['DMS','DMS flux','CCN','COD','albedo','primary productivity']
+yvals=pd.DataFrame.from_records(yVals,columns=['primprod','sea DMS','ice DMS','air DMS','air_dms_icecont','CCN', 'CCN_icecont', 'forcing', 'forcing_icecont'])
 
-for i in range(1,4):
-        
-    ax = fig.add_subplot(1,3,i)
+str_list = ['primprod','sea DMS','ice DMS','air DMS','air_dms_icecont','CCN', 'CCN_icecont', 'forcing', 'forcing_icecont']
+var_list = ['primprod','sea DMS','ice DMS','air DMS','air_dms_icecont','CCN', 'CCN_icecont', 'forcing', 'forcing_icecont']
+key_list = ['primprod','sea DMS','ice DMS','air DMS','air_dms_icecont','CCN', 'CCN_icecont', 'forcing', 'forcing_icecont']
+
+for i in range(1,10):
     
-    if (i==1):
-        theLines = ax.plot(timeVals,yvals[var_list[5]],'b*',label='primary productivity')
-        titl = 'Primary Productivity'
-        ax.set_ylim([0,10])
-        ax.set_ylabel("mg/$m^3$")
-        ax
-    if (i==2):
-        theLines = ax.plot(timeVals,yvals[var_list[0]],'b*',label=key_list[1])
-        titl = 'DMS concentration'
-        ax.set_ylim([0,20])
-        ax.set_ylabel("nM")
+    ax = fig.add_subplot(3,3,i)
 
-    if (i==3):
-        theLines = ax.plot(timeVals,yvals[var_list[1]],'b*',label=key_list[5])
-        titl = 'DMS flux'
-        ax.set_ylim([0,40])
-        ax.set_ylabel("$\mu$mol / $m^2$/day")
-
-# points.set_markersize(12) 
+    theLines = ax.plot(timeVals,yvals[var_list[i-1]],'b*',label=key_list[i-1])
     theLines[0].set_marker('+')
     theLines[0].set_linestyle('-')
 
-    # titl =  str_list[i-1]  
+    titl =  str_list[i-1]  
     ax.hold(True)
     ax.set_title(titl, fontsize = 10)
     ax.set_xlabel("time (day)", fontsize = 8)
-    
+
     ax.set_xlim([0,350])
 
-    
+
 fig.set_facecolor('w')
 plt.suptitle('Model Variables', fontsize=16, fontweight='bold')
 
-print(yvals['DMS flux'])
+# print(yvals['DMS flux'])
 
-days = np.arange(1,365,1)
+days = np.arange(1,366,1)
 ice = np.array(metList.get('ice'))
 wind = np.array(metList.get('wind'))
 sst = np.array(metList.get('sst'))
 par = np.array(metList.get('par'))
-
+print('days')
+print(len(days))
+print('ice')
+print(len(ice))
 
 
 fig2, big_axes = plt.subplots( figsize=(12.0, 8.0) , nrows=3, ncols=1, sharey=True) 
@@ -181,13 +186,13 @@ for row, big_ax in enumerate(big_axes, start=1):
     # removes the white frame
     big_ax._frameon = False
 
-met_list = [ice,wind,sst,par]
-tit_list = ['ice','wind','sst','PAR']
+met_list = [ice,wind,sst,par,par,par]
+tit_list = ['Ice Cover','Windspeed','Sea Surface Temperature','Light Intensity','Light Intensity', 'Light Intensity']
 ylabel_list = []
-for i in range(1,5):
-        
-    ax = fig2.add_subplot(2,2,i)
+for i in range(1,7):
     
+    ax = fig2.add_subplot(3,2,i)
+
     theLines = ax.plot(days,met_list[i-1],'b*')
 # points.set_markersize(12) 
     theLines[0].set_marker('+')
@@ -195,9 +200,9 @@ for i in range(1,5):
 
     titl =  'Climatology of ' + tit_list[i-1]
     ax.hold(True)
-    ax.set_title(titl, fontsize = 10)
+    ax.set_title(titl, fontsize = 12)
     ax.set_xlabel("time (day)", fontsize = 8)
-    
+
     ax.set_xlim([0,365])
 
     if (i ==1):
