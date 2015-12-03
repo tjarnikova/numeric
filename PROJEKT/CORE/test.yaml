@@ -1,0 +1,29 @@
+timevars:
+  dt: 1
+  tstart: 1.0
+  tend: 366.0
+uservars:
+ 
+initvars:
+  primprod: .1
+  seaDMS: 0.1
+  iceDMS: 0
+  airDMS: .01
+  airDMS_icecont: 0.01
+  CCN: 100
+  CCN_icecont: 100
+  forcing: 0
+  forcing_icecont: 0 
+
+adaptvars:
+  dtpassmin: 0.1
+  dtfailmax: 0.5
+  dtfailmin: 0.1
+  s: 0.9
+  rtol: 1.0e-05
+  atol: 1.0e-05
+  maxsteps: 2000.0
+  maxfail: 60.0
+  dtpassmax: 5.0
+
+
